@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Files - Interaktivt Verktyg</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --accent-color: #1a73e8;
+            --text-color: #e0e0e0;
+            --main-chord-color: #ffffff;
+            --main-chord-text: #000000;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        select {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            background: #3d3d3d;
+            color: white;
+            border: 2px solid var(--accent-color);
+            cursor: pointer;
+        }
+
+        .tool-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            position: relative;
+        }
+
+        .row-label {
+            grid-column: 1 / -1;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .chord-box {
+            background: #3d3d3d;
+            padding: 15px 5px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.2s;
+            border: 1px solid #444;
+        }
+
+        .chord-box.highlight {
+            background: var(--main-chord-color);
+            color: var(--main-chord-text);
+        }
+
+        .arrow {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .secondary-row .chord-box { border-color: #e67e22; }
+        .main-row .chord-box { border-color: #3498db; }
+        .modal-row .chord-box { border-color: #9b59b6; }
+
+        .empty {
+            visibility: hidden;
+        }
+
+        footer {
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Chord Files Interactive</h1>
+        <p>Välj tonart för att se ackordsmöjligheter</p>
+        <select id="keySelect" onchange="updateTool()">
+            <option value="C">C Dur</option>
+            <option value="G">G Dur</option>
+            <option value="D">D Dur</option>
+            <option value="A">A Dur</option>
+            <option value="E">E Dur</option>
+            <option value="B">B Dur</option>
+            <option value="F#">F# Dur</option>
+            <option value="F">F Dur</option>
+            <option value="Bb">Bb Dur</option>
+            <option value="Eb">Eb Dur</option>
+            <option value="Ab">Ab Dur</option>
+            <option value="Db">Db Dur</option>
+        </select>
+    </header>
+
+    <div class="tool-grid">
+        <!-- TOP: SECONDARY DOMINANTS -->
+        <div class="row secondary-row" id="secondaryRow">
+            <div class="row-label">Sekundära Dominanter (Toppen)</div>
+            <!-- Dynamic Content -->
+        </div>
+
+        <!-- MIDDLE: MAIN CHORDS -->
+        <div class="row main-row" id="mainRow">
+            <div class="row-label">Grundackord (Mitten)</div>
+            <!-- Dynamic Content -->
+        </div>
+
+        <!-- BOTTOM: MODAL INTERCHANGE -->
+        <div class="row modal-row" id="modalRow">
+            <div class="row-label">Modal Interchange (Botten)</div>
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+
+    <footer>
+        Baserat på Chord Files®️ systemet. <br>
+        Vita rutor = Tonika (1), Subdominant (4) och Dominant (5).
+    </footer>
+</div>
+
+<script>
+    const chordData = {
+        "C": {
+            main: ["C", "Dm", "Em", "F", "G", "Am"],
+            sec: ["-", "A7", "B7", "C7", "D7", "E7"],
+            modal: ["Eb", "Fm", "Gm", "Ab", "Bb", "-"]
+        },
+        "G": {
+            main: ["G", "Am", "Bm", "C", "D", "Em"],
+            sec: ["-", "E7", "F#7", "G7", "A7", "B7"],
+            modal: ["Bb", "Cm", "Dm", "Eb", "F", "-"]
+        },
+        "D": {
+            main: ["D", "Em", "F#m", "G", "A", "Bm"],
+            sec: ["-", "B7", "C#7", "D7", "E7", "F#7"],
+            modal: ["F", "Gm", "Am", "Bb", "C", "-"]
+        },
+        "A": {
+            main: ["A", "Bm", "C#m", "D", "E", "F#m"],
+            sec: ["-", "F#7", "G#7", "A7", "B7", "C#7"],
+            modal: ["C", "Dm", "Em", "F", "G", "-"]
+        },
+        "E": {
+            main: ["E", "F#m", "G#m", "A", "B", "C#m"],
+            sec: ["-", "C#7", "D#7", "E7", "F#7", "G#7"],
+            modal: ["G", "Am", "Bm", "C", "D", "-"]
+        },
+        "B": {
+            main: ["B", "C#m", "D#m", "E", "F#", "G#m"],
+            sec: ["-", "G#7", "A#7", "B7", "C#7", "D#7"],
+            modal: ["D", "Em", "F#m", "G", "A", "-"]
+        },
+        "F#": {
+            main: ["F#", "G#m", "A#m", "B", "C#", "D#m"],
+            sec: ["-", "D#7", "F7", "F#7", "G#7", "A#7"],
+            modal: ["A", "Bm", "C#m", "D", "E", "-"]
+        },
+        "F": {
+            main: ["F", "Gm", "Am", "Bb", "C", "Dm"],
+            sec: ["-", "D7", "E7", "F7", "G7", "A7"],
+            modal: ["Ab", "Bbm", "Cm", "Db", "Eb", "-"]
+        },
+        "Bb": {
+            main: ["Bb", "Cm", "Dm", "Eb", "F", "Gm"],
+            sec: ["-", "G7", "A7", "Bb7", "C7", "D7"],
+            modal: ["Db", "Ebm", "Fm", "Gb", "Ab", "-"]
+        },
+        "Eb": {
+            main: ["Eb", "Fm", "Gm", "Ab", "Bb", "Cm"],
+            sec: ["-", "C7", "D7", "Eb7", "F7", "G7"],
+            modal: ["Gb", "Abm", "Bbm", "B", "Db", "-"]
+        },
+        "Ab": {
+            main: ["Ab", "Bbm", "Cm", "Db", "Eb", "Fm"],
+            sec: ["-", "F7", "G7", "Ab7", "Bb7", "C7"],
+            modal: ["B", "Dbm", "Ebm", "E", "Gb", "-"]
+        },
+        "Db": {
+            main: ["Db", "Ebm", "Fm", "Gb", "Ab", "Bbm"],
+            sec: ["-", "Bb7", "C7", "Db7", "Eb7", "F7"],
+            modal: ["E", "Gbm", "Abm", "A", "B", "-"]
+        }
+    };
+
+    function updateTool() {
+        const key = document.getElementById('keySelect').value;
+        const data = chordData[key];
+
+        const mainRow = document.getElementById('mainRow');
+        const secRow = document.getElementById('secondaryRow');
+        const modalRow = document.getElementById('modalRow');
+
+        // Clear existing boxes but keep labels
+        const labels = {
+            main: mainRow.querySelector('.row-label').outerHTML,
+            sec: secRow.querySelector('.row-label').outerHTML,
+            modal: modalRow.querySelector('.row-label').outerHTML
+        };
+
+        mainRow.innerHTML = labels.main;
+        secRow.innerHTML = labels.sec;
+        modalRow.innerHTML = labels.modal;
+
+        // Render Secondary Dominants (Top)
+        data.sec.forEach((chord, i) => {
+            const div = document.createElement('div');
+            if (chord === "-") {
+                div.className = 'chord-box empty';
+            } else {
+                div.className = 'chord-box';
+                div.innerHTML = `<div>${chord}</div><div class="arrow">↓</div>`;
+            }
+            secRow.appendChild(div);
+        });
+
+        // Render Main Chords (Middle)
+        data.main.forEach((chord, i) => {
+            const div = document.createElement('div');
+            // Highlight Tonic (0), Subdominant (3), Dominant (4)
+            const isHighlighted = [0, 3, 4].includes(i);
+            div.className = `chord-box ${isHighlighted ? 'highlight' : ''}`;
+            div.innerText = chord;
+            mainRow.appendChild(div);
+        });
+
+        // Render Modal Interchange (Bottom)
+        data.modal.forEach((chord, i) => {
+            const div = document.createElement('div');
+            if (chord === "-") {
+                div.className = 'chord-box empty';
+            } else {
+                div.className = 'chord-box';
+                div.innerHTML = `<div class="arrow">↑</div><div>${chord}</div>`;
+            }
+            modalRow.appendChild(div);
+        });
+    }
+
+    // Initialize
+    updateTool();
+</script>
+
+</body>
+</html>
