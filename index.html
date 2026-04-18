@@ -1,116 +1,126 @@
-<!DOCTYPE html>
+html_content_v2 = """<!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chord Files - Interaktivt Verktyg</title>
+    <title>Chord Files - Interaktivt Verktyg V2</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --accent-color: #1a73e8;
-            --text-color: #e0e0e0;
-            --main-chord-color: #ffffff;
-            --main-chord-text: #000000;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #3498db;
+            --sec-color: #e67e22;
+            --modal-color: #9b59b6;
+            --text-color: #f0f0f0;
+            --highlight-bg: #ffffff;
+            --highlight-text: #000000;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 40px 20px;
             margin: 0;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
+        h1 { margin-bottom: 10px; font-weight: 800; }
+
         select {
-            padding: 10px 20px;
-            font-size: 1.2rem;
-            border-radius: 5px;
-            background: #3d3d3d;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            background: #2c2c2c;
             color: white;
             border: 2px solid var(--accent-color);
             cursor: pointer;
+            outline: none;
         }
 
-        .tool-grid {
+        .row-container {
             display: flex;
             flex-direction: column;
-            gap: 40px;
+            gap: 20px;
         }
 
         .row {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            position: relative;
+            gap: 12px;
+            text-align: center;
         }
 
         .row-label {
-            grid-column: 1 / -1;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            margin-bottom: 5px;
-            text-align: center;
+            letter-spacing: 2px;
+            color: #777;
+            margin-bottom: 10px;
+            grid-column: 1 / -1;
         }
 
-        .chord-box {
-            background: #3d3d3d;
-            padding: 15px 5px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.1rem;
-            min-height: 50px;
+        .chord-card {
+            background: #2a2a2a;
+            padding: 20px 10px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: 1px solid #333;
             display: flex;
             flex-direction: column;
+            align-items: center;
             justify-content: center;
-            transition: transform 0.2s;
-            border: 1px solid #444;
-        }
-
-        .chord-box.highlight {
-            background: var(--main-chord-color);
-            color: var(--main-chord-text);
+            min-height: 80px;
         }
 
         .arrow {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 5px;
+            font-size: 1rem;
+            opacity: 0.5;
+            margin: 5px 0;
         }
 
-        .secondary-row .chord-box { border-color: #e67e22; }
-        .main-row .chord-box { border-color: #3498db; }
-        .modal-row .chord-box { border-color: #9b59b6; }
+        /* Styling per row */
+        .top-row .chord-card { border-top: 4px solid var(--sec-color); }
+        .mid-row .chord-card { border-top: 4px solid var(--accent-color); }
+        .bot-row .chord-card { border-top: 4px solid var(--modal-color); }
 
-        .empty {
-            visibility: hidden;
+        .mid-row .highlight {
+            background: var(--highlight-bg);
+            color: var(--highlight-text);
         }
+
+        .bot-row {
+            grid-template-columns: repeat(4, 1fr);
+            max-width: 660px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .spacer { height: 20px; }
 
         footer {
-            margin-top: 40px;
-            color: #666;
+            margin-top: 50px;
+            opacity: 0.4;
             font-size: 0.8rem;
             text-align: center;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -118,9 +128,8 @@
 
 <div class="container">
     <header>
-        <h1>Chord Files Interactive</h1>
-        <p>Välj tonart för att se ackordsmöjligheter</p>
-        <select id="keySelect" onchange="updateTool()">
+        <h1>Chord Files Digital</h1>
+        <select id="keySelect" onchange="render()">
             <option value="C">C Dur</option>
             <option value="G">G Dur</option>
             <option value="D">D Dur</option>
@@ -136,153 +145,61 @@
         </select>
     </header>
 
-    <div class="tool-grid">
-        <!-- TOP: SECONDARY DOMINANTS -->
-        <div class="row secondary-row" id="secondaryRow">
-            <div class="row-label">Sekundära Dominanter (Toppen)</div>
-            <!-- Dynamic Content -->
-        </div>
+    <div class="row-container">
+        <div class="row-label">Dominanter (Leder nedåt)</div>
+        <div class="row top-row" id="topRow"></div>
 
-        <!-- MIDDLE: MAIN CHORDS -->
-        <div class="row main-row" id="mainRow">
-            <div class="row-label">Grundackord (Mitten)</div>
-            <!-- Dynamic Content -->
-        </div>
+        <div class="spacer"></div>
 
-        <!-- BOTTOM: MODAL INTERCHANGE -->
-        <div class="row modal-row" id="modalRow">
-            <div class="row-label">Modal Interchange (Botten)</div>
-            <!-- Dynamic Content -->
-        </div>
+        <div class="row-label">Grundackord (Mitten)</div>
+        <div class="row mid-row" id="midRow"></div>
+
+        <div class="spacer"></div>
+
+        <div class="row-label">Modal Interchange (Lånade från parallellmoll)</div>
+        <div class="row bot-row" id="botRow"></div>
     </div>
 
     <footer>
-        Baserat på Chord Files®️ systemet. <br>
-        Vita rutor = Tonika (1), Subdominant (4) och Dominant (5).
+        Digital version av Chord Files®️ systemet.<br>
+        Vita rutor markerar Tonika (I), Subdominant (IV) och Dominant (V).
     </footer>
 </div>
 
 <script>
-    const chordData = {
-        "C": {
-            main: ["C", "Dm", "Em", "F", "G", "Am"],
-            sec: ["-", "A7", "B7", "C7", "D7", "E7"],
-            modal: ["Eb", "Fm", "Gm", "Ab", "Bb", "-"]
-        },
-        "G": {
-            main: ["G", "Am", "Bm", "C", "D", "Em"],
-            sec: ["-", "E7", "F#7", "G7", "A7", "B7"],
-            modal: ["Bb", "Cm", "Dm", "Eb", "F", "-"]
-        },
-        "D": {
-            main: ["D", "Em", "F#m", "G", "A", "Bm"],
-            sec: ["-", "B7", "C#7", "D7", "E7", "F#7"],
-            modal: ["F", "Gm", "Am", "Bb", "C", "-"]
-        },
-        "A": {
-            main: ["A", "Bm", "C#m", "D", "E", "F#m"],
-            sec: ["-", "F#7", "G#7", "A7", "B7", "C#7"],
-            modal: ["C", "Dm", "Em", "F", "G", "-"]
-        },
-        "E": {
-            main: ["E", "F#m", "G#m", "A", "B", "C#m"],
-            sec: ["-", "C#7", "D#7", "E7", "F#7", "G#7"],
-            modal: ["G", "Am", "Bm", "C", "D", "-"]
-        },
-        "B": {
-            main: ["B", "C#m", "D#m", "E", "F#", "G#m"],
-            sec: ["-", "G#7", "A#7", "B7", "C#7", "D#7"],
-            modal: ["D", "Em", "F#m", "G", "A", "-"]
-        },
-        "F#": {
-            main: ["F#", "G#m", "A#m", "B", "C#", "D#m"],
-            sec: ["-", "D#7", "F7", "F#7", "G#7", "A#7"],
-            modal: ["A", "Bm", "C#m", "D", "E", "-"]
-        },
-        "F": {
-            main: ["F", "Gm", "Am", "Bb", "C", "Dm"],
-            sec: ["-", "D7", "E7", "F7", "G7", "A7"],
-            modal: ["Ab", "Bbm", "Cm", "Db", "Eb", "-"]
-        },
-        "Bb": {
-            main: ["Bb", "Cm", "Dm", "Eb", "F", "Gm"],
-            sec: ["-", "G7", "A7", "Bb7", "C7", "D7"],
-            modal: ["Db", "Ebm", "Fm", "Gb", "Ab", "-"]
-        },
-        "Eb": {
-            main: ["Eb", "Fm", "Gm", "Ab", "Bb", "Cm"],
-            sec: ["-", "C7", "D7", "Eb7", "F7", "G7"],
-            modal: ["Gb", "Abm", "Bbm", "B", "Db", "-"]
-        },
-        "Ab": {
-            main: ["Ab", "Bbm", "Cm", "Db", "Eb", "Fm"],
-            sec: ["-", "F7", "G7", "Ab7", "Bb7", "C7"],
-            modal: ["B", "Dbm", "Ebm", "E", "Gb", "-"]
-        },
-        "Db": {
-            main: ["Db", "Ebm", "Fm", "Gb", "Ab", "Bbm"],
-            sec: ["-", "Bb7", "C7", "Db7", "Eb7", "F7"],
-            modal: ["E", "Gbm", "Abm", "A", "B", "-"]
-        }
+    const data = {
+        "C": { top: ["G7","A7","B7","C7","D7","E7"], mid: ["C","Dm","Em","F","G","Am"], bot: ["Eb","Fm","Ab","Bb"] },
+        "G": { top: ["D7","E7","F#7","G7","A7","B7"], mid: ["G","Am","Bm","C","D","Em"], bot: ["Bb","Cm","Eb","F"] },
+        "D": { top: ["A7","B7","C#7","D7","E7","F#7"], mid: ["D","Em","F#m","G","A","Bm"], bot: ["F","Gm","Bb","C"] },
+        "A": { top: ["E7","F#7","G#7","A7","B7","C#7"], mid: ["A","Bm","C#m","D","E","F#m"], bot: ["C","Dm","F","G"] },
+        "E": { top: ["B7","C#7","D#7","E7","F#7","G#7"], mid: ["E","F#m","G#m","A","B","C#m"], bot: ["G","Am","C","D"] },
+        "B": { top: ["F#7","G#7","A#7","B7","C#7","D#7"], mid: ["B","C#m","D#m","E","F#","G#m"], bot: ["D","Em","G","A"] },
+        "F#": { top: ["C#7","D#7","F7","F#7","G#7","A#7"], mid: ["F#","G#m","A#m","B","C#","D#m"], bot: ["A","Bm","D","E"] },
+        "F": { top: ["C7","D7","E7","F7","G7","A7"], mid: ["F","Gm","Am","Bb","C","Dm"], bot: ["Ab","Bbm","Db","Eb"] },
+        "Bb": { top: ["F7","G7","A7","Bb7","C7","D7"], mid: ["Bb","Cm","Dm","Eb","F","Gm"], bot: ["Db","Ebm","Gb","Ab"] },
+        "Eb": { top: ["Bb7","C7","D7","Eb7","F7","G7"], mid: ["Eb","Fm","Gm","Ab","Bb","Cm"], bot: ["Gb","Abm","B","Db"] },
+        "Ab": { top: ["Eb7","F7","G7","Ab7","Bb7","C7"], mid: ["Ab","Bbm","Cm","Db","Eb","Fm"], bot: ["B","Dbm","E","Gb"] },
+        "Db": { top: ["Ab7","Bb7","C7","Db7","Eb7","F7"], mid: ["Db","Ebm","Fm","Gb","Ab","Bbm"], bot: ["E","Gbm","A","B"] }
     };
 
-    function updateTool() {
+    function render() {
         const key = document.getElementById('keySelect').value;
-        const data = chordData[key];
+        const current = data[key];
 
-        const mainRow = document.getElementById('mainRow');
-        const secRow = document.getElementById('secondaryRow');
-        const modalRow = document.getElementById('modalRow');
+        const t = document.getElementById('topRow');
+        const m = document.getElementById('midRow');
+        const b = document.getElementById('botRow');
 
-        // Clear existing boxes but keep labels
-        const labels = {
-            main: mainRow.querySelector('.row-label').outerHTML,
-            sec: secRow.querySelector('.row-label').outerHTML,
-            modal: modalRow.querySelector('.row-label').outerHTML
-        };
-
-        mainRow.innerHTML = labels.main;
-        secRow.innerHTML = labels.sec;
-        modalRow.innerHTML = labels.modal;
-
-        // Render Secondary Dominants (Top)
-        data.sec.forEach((chord, i) => {
-            const div = document.createElement('div');
-            if (chord === "-") {
-                div.className = 'chord-box empty';
-            } else {
-                div.className = 'chord-box';
-                div.innerHTML = `<div>${chord}</div><div class="arrow">↓</div>`;
-            }
-            secRow.appendChild(div);
-        });
-
-        // Render Main Chords (Middle)
-        data.main.forEach((chord, i) => {
-            const div = document.createElement('div');
-            // Highlight Tonic (0), Subdominant (3), Dominant (4)
-            const isHighlighted = [0, 3, 4].includes(i);
-            div.className = `chord-box ${isHighlighted ? 'highlight' : ''}`;
-            div.innerText = chord;
-            mainRow.appendChild(div);
-        });
-
-        // Render Modal Interchange (Bottom)
-        data.modal.forEach((chord, i) => {
-            const div = document.createElement('div');
-            if (chord === "-") {
-                div.className = 'chord-box empty';
-            } else {
-                div.className = 'chord-box';
-                div.innerHTML = `<div class="arrow">↑</div><div>${chord}</div>`;
-            }
-            modalRow.appendChild(div);
-        });
+        t.innerHTML = current.top.map(c => `<div class="chord-card"><span>${c}</span><span class="arrow">↓</span></div>`).join('');
+        m.innerHTML = current.mid.map((c, i) => `<div class="chord-card ${[0,3,4].includes(i) ? 'highlight' : ''}">${c}</div>`).join('');
+        b.innerHTML = current.bot.map(c => `<div class="chord-card"><span class="arrow">↑</span><span>${c}</span></div>`).join('');
     }
 
-    // Initialize
-    updateTool();
+    render();
 </script>
-
 </body>
 </html>
+"""
+
+with open("chord-files-tool-v2.html", "w", encoding="utf-8") as f:
+    f.write(html_content_v2)
